@@ -1,0 +1,7 @@
+INSTALLATION
+
+Edit the makefile to make any necessary changes.
+	+ Should be fine for Linux...
+
+At the prompt type 'make'
+	+ Install proxy where ever you see fit.

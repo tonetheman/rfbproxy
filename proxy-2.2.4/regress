@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+
+use IO::Socket;
+
+MAIN:
+{
+  if ($#ARGV != 2) {
+	print "Usage: ./regress <proxy server> <port> <# connections>\n"; 
+        exit(1);
+  }
+  for ($i=0;$i<$ARGV[2];$i++) {
+    $sd = IO::Socket::INET->new(PeerAddr => $ARGV[0],
+				PeerPort => $ARGV[1],
+				Proto    => "tcp",
+				Type     => SOCK_STREAM)
+      or die "Socket: $!";
+    
+    print $sd "HEAD / HTTP/1.0\n\n";
+    print "$i\n";
+    while(<$sd>) { print "$_"; }
+    
+  }
+  close($sd);
+  
+  print "We connected $i times to $ARGV[0]\n";
+}
