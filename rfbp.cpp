@@ -1,9 +1,15 @@
 
-#include <pthread.h>
-#include <signal.h>
-#include <getopt.h>
+#include "rfbp.h"
 
 #include <iostream>
+
+using std::cout;
+using std::endl;
+using std::cerr;
+
+extern int tcp_connect(const char * host, const char * serv);
+extern int tcp_listen(const char * host, const char * serv, 
+	socklen_t * addrlenp);
 
 struct AppOptions {
 	bool nodaemon;
@@ -11,6 +17,15 @@ struct AppOptions {
 	char * destport;
 	char * srcip;
 	char * srcport;
+
+	AppOptions() {
+		nodaemon = false;
+		destip = destport = 0;
+		srcip = srcport = 0;
+	}
+};
+
+struct Proxy {
 };
 
 static struct option const long_opts[] = {
@@ -22,6 +37,8 @@ void application_shutdown(int sig) {
 }
 
 void usage() {
+	cout << "rfbp some stuff" << endl;
+	exit(-1);
 }
 
 void parse_args(int argc, char* argv[], AppOptions & opts) {
@@ -56,8 +73,37 @@ int main(int argc, char* argv[]) {
 
 	signal(SIGINT, application_shutdown);
 
+	cout << "after setting signal" << endl;
+
 	AppOptions opts;
 	parse_args(argc, argv, opts);
+
+	cout << "after parse args" << endl;
+
+	int listenfd = -1;
+	socklen_t addrlen;
+	if (opts.srcip) {
+		listenfd = tcp_listen(opts.srcip, opts.srcport, &addrlen);
+	} else {
+		listenfd = tcp_listen(0, opts.srcport, &addrlen);
+	}
+
+	struct sockaddr* cliaddr = 0;
+	if ((cliaddr = (struct sockaddr*)malloc(addrlen)) == 0) {
+		cerr << "memory error" << endl;
+	}
+
+	socklen_t clilen;
+	Proxy* ptr = 0;
+	int connfd = -1;
+	for(;;) {
+		ptr = (struct Proxy*)malloc(sizeof(Proxy));
+		clilen = addrlen;
+		connfd = accept(listenfd, cliaddr, &clilen);
+		if (connfd==-1) {
+			continue;
+		}
+	}
 
 	return 0;
 }
